@@ -777,6 +777,45 @@ API.prototype.recordCustomEvent = function recordCustomEvent(eventType, attribut
   this.agent.customEvents.add([instrinics, attributes])
 }
 
+/**
+ * Shuts down the agent.
+ *
+ * @param {object}  [options]                           object with shut down options
+ * @param {boolean} [options.collectPendingData=false]  If true, the agent will send any
+ *                                                      pending data to the collector
+ *                                                      before shutting down.
+ * @param {function} [callback]                         callback function that runs when
+ *                                                      agent stopped
+ */
+API.prototype.shutdown = function shutdown(options, cb) {
+  var metric = this.agent.metrics.getOrCreateMetric(
+    NAMES.SUPPORTABILITY.API + '/shutdown'
+  )
+  metric.incrementCallCount()
+
+  var callback = cb
+  if (!callback) {
+    if (typeof options === 'function') {
+      callback = options
+    } else {
+      callback = new Function()
+    }
+  }
+
+  var agent = this.agent
+  if (options && options.collectPendingData) {
+    agent.harvest(function cb_harvest(error) {
+      if (error) {
+        logger.error(error, 'An error occurred while running last harvest' +
+          ' before shutdown.')
+      }
+      agent.stop(callback)
+    })
+  } else {
+    agent.stop(callback)
+  }
+}
+
 
 function _checkKeyLength(object, maxLength) {
   var keys = Object.keys(object)

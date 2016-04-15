@@ -1,9 +1,7 @@
 'use strict'
 
-var path = require('path')
 var helper = require('../../lib/agent_helper.js')
 var http = require('http')
-var skip = require('./skip')
 var NAMES = require('../../../lib/metrics/names.js')
 var assertMetrics = require('../../lib/metrics_helper').assertMetrics
 
@@ -27,24 +25,6 @@ test('first two segments are built-in Express middlewares', function(t) {
     t.equal(segments[0].name, NAMES.EXPRESS.MIDDLEWARE + 'query')
     t.equal(segments[1].name, NAMES.EXPRESS.MIDDLEWARE + 'expressInit')
 
-    checkMetrics(t, transaction.metrics, [
-      NAMES.EXPRESS.MIDDLEWARE + 'anonymous//test'
-    ])
-
-    t.end()
-  })
-})
-
-test('middleware with child segment gets named correctly', function(t) {
-  setup(t)
-
-  app.all('/test', function(req, res) {
-    setTimeout(function() {
-      res.end()
-    }, 1)
-  })
-
-  runTest(t, function(segments, transaction) {
     checkMetrics(t, transaction.metrics, [
       NAMES.EXPRESS.MIDDLEWARE + 'anonymous//test'
     ])
